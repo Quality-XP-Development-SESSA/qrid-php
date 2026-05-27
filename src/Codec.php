@@ -13,14 +13,14 @@ final class Codec
     /**
      * Decode a base64-encoded QR ID string into its structured payload.
      *
-     * @return array{v: int, code: string, id: int, company: string, email: string, address: string}
+     * @return array{v: int, code: string, id: string, company: string, email: string, address: string}
      *
      * @throws InvalidArgumentException When the base64 input is malformed.
      * @throws JsonException            When the decoded content is not valid JSON.
      */
     public static function decodeQRId(string $encoded): array
     {
-        $json = base64_decode($encoded, strict: true);
+        $json = base64_decode(trim($encoded), strict: true);
 
         if ($json === false) {
             throw new InvalidArgumentException(

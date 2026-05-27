@@ -4,7 +4,7 @@
   "type": "library",
   "license": "MIT",
   "keywords": ["qrcode", "qr", "invoice", "mergeid", "codec", "decoder"],
-  "homepage": "https://github.com/qxdev/qrid-php",
+  "homepage": "https://github.com/Quality-XP-Development-SESSA/qrid-php",
   "authors": [
     {
       "name": "Valentin Secades Mendez",
