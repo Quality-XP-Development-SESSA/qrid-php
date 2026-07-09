@@ -4,6 +4,29 @@ PHP library for encoding and decoding **MergeID electronic invoice QR codes**.
 
 MergeID QR codes embed invoice identity information (company, tax ID, contact, address) as a base64-encoded JSON payload. This library handles the encode/decode round-trip and, optionally, SVG QR image generation.
 
+## Typical usage flow
+
+```mermaid
+sequenceDiagram
+    actor Staff as Billing Staff
+    participant ERP as Billing / ERP System
+    participant Lib as qrid/codec
+    participant QR as Invoice QR Code
+    participant App as MergeID App
+
+    Staff->>ERP: create invoice
+    ERP->>Lib: Codec::encodeQRId(code, id, company, email, address)
+    Lib-->>ERP: SVG QR code
+    ERP->>QR: print / embed on invoice
+
+    Note over App,QR: later, at point of scan
+    App->>QR: scan with camera
+    QR-->>App: base64 payload string
+    App->>Lib: Codec::decodeQRId(encoded)
+    Lib-->>App: { v, code, id, company, email, address }
+    App-->>Staff: display verified invoice identity
+```
+
 ## Installation
 
 ```bash
