@@ -155,7 +155,7 @@ Tests cover field decoding, UTF-8 handling, whitespace trimming, error paths, an
 New versions reach [Packagist](https://packagist.org/packages/qrid/codec) automatically — there is no build/upload step:
 
 1. Bump the version in the `VERSION` file (repo root) and merge to `main`.
-2. [`release.yml`](.github/workflows/release.yml) runs on every push to `main`. It reads `VERSION`; if no `vX.Y.Z` tag already exists for it, it runs PHPUnit across PHP 8.1–8.4 and creates that tag plus a GitHub Release.
+2. [`release.yml`](.github/workflows/release.yml) runs on every push to `main`. It reads `VERSION`; if no `vX.Y.Z` tag already exists for it, it runs PHPUnit across PHP 8.2–8.4 (PHPUnit 11's minimum, even though the library itself supports PHP >= 8.1) and creates that tag plus a GitHub Release.
 3. Packagist's webhook on this repository picks up the new tag and republishes it within moments. Composer installs straight from the tagged GitHub source (via `dist`/zipball), so — unlike PyPI or npm — there's no artifact to build/upload and no OIDC/trusted-publisher concept to configure.
 
 `composer.json` intentionally has no `version` field: Composer/Packagist derive the version purely from git tags, and a hardcoded field risks drifting out of sync with the actual tag. `VERSION` exists only so the release workflow has something to read.
