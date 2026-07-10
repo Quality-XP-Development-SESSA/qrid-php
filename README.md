@@ -15,7 +15,7 @@ sequenceDiagram
     participant App as MergeID App
 
     Staff->>ERP: create invoice
-    ERP->>Lib: Codec::encodeQRId(code, id, company, email, address)
+    ERP->>Lib: Codec::encodeQRId(id, company, email, address, activityCode)
     Lib-->>ERP: SVG QR code
     ERP->>QR: print / embed on invoice
 
@@ -23,7 +23,7 @@ sequenceDiagram
     App->>QR: scan with camera
     QR-->>App: base64 payload string
     App->>Lib: Codec::decodeQRId(encoded)
-    Lib-->>App: { v, code, id, company, email, address }
+    Lib-->>App: { v, id, company, email, address, activity_code }
     App-->>Staff: display verified invoice identity
 ```
 
@@ -48,12 +48,12 @@ use QRId\Codec;
 
 $payload = Codec::decodeQRId($encoded);
 
-echo $payload['v'];       // Payload schema version (int, currently 1)
-echo $payload['code'];    // Installation / activity code  (e.g. "ACT-001")
-echo $payload['id'];      // Tax or company ID              (e.g. "3101679980")
-echo $payload['company']; // Company legal name
-echo $payload['email'];   // Billing e-mail address
-echo $payload['address']; // Physical address
+echo $payload['v'];             // Payload schema version (int, currently 1)
+echo $payload['id'];            // Tax or company ID              (e.g. "3101679980")
+echo $payload['company'];       // Company legal name
+echo $payload['email'];         // Billing e-mail address
+echo $payload['address'];       // Physical address
+echo $payload['activity_code']; // Installation / activity code (e.g. "ACT-001"), or "" if blank
 ```
 
 `decodeQRId` trims surrounding whitespace from the input before decoding, so strings
@@ -88,11 +88,11 @@ Produce an SVG QR code from invoice identity fields:
 use QRId\Codec;
 
 $svg = Codec::encodeQRId(
-    code:    'ACT-001',
-    id:      '3101679980',
-    company: 'Acme Corp S.A.',
-    email:   'billing@acme.example',
-    address: '123 Main St, San José, Costa Rica',
+    id:           '3101679980',
+    company:      'Acme Corp S.A.',
+    email:        'billing@acme.example',
+    address:      '123 Main St, San José, Costa Rica',
+    activityCode: 'ACT-001',
 );
 
 // Serve inline
@@ -102,6 +102,9 @@ echo $svg;
 // Or embed in HTML
 echo '<img src="data:image/svg+xml;utf8,' . rawurlencode($svg) . '">';
 ```
+
+`activityCode` is optional and defaults to `''` (blank). A blank activity code signals a
+consuming system to generate an electronic ticket instead of using an activity code.
 
 **Exceptions thrown:**
 
@@ -117,22 +120,22 @@ The QR code data is a UTF-8 JSON object encoded as standard base64 (no line-brea
 ```json
 {
   "v": 1,
-  "code": "ACT-001",
   "id": "3101679980",
   "company": "Acme Corp S.A.",
   "email": "billing@acme.example",
-  "address": "123 Main St, San José, Costa Rica"
+  "address": "123 Main St, San José, Costa Rica",
+  "activity_code": "ACT-001"
 }
 ```
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `v` | `int` | Payload schema version. Currently always `1`. |
-| `code` | `string` | Installation or activity code that links the QR to an internal record. |
 | `id` | `string` | Tax / company registration ID. |
 | `company` | `string` | Legal company name (UTF-8, including accented characters). |
 | `email` | `string` | Primary billing or contact e-mail address. |
 | `address` | `string` | Physical address of the company. |
+| `activity_code` | `string` | Installation or activity code that links the QR to an internal record. May be blank (`""`), which signals a consuming system to generate an electronic ticket instead. |
 
 ## Requirements
 

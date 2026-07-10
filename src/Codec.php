@@ -13,7 +13,7 @@ final class Codec
     /**
      * Decode a base64-encoded QR ID string into its structured payload.
      *
-     * @return array{v: int, code: string, id: string, company: string, email: string, address: string}
+     * @return array{v: int, id: string, company: string, email: string, address: string, activity_code: string}
      *
      * @throws InvalidArgumentException When the base64 input is malformed.
      * @throws JsonException            When the decoded content is not valid JSON.
@@ -41,11 +41,11 @@ final class Codec
      * @throws JsonException    When JSON encoding fails.
      */
     public static function encodeQRId(
-        string $code,
         string $id,
         string $company,
         string $email,
         string $address,
+        string $activityCode = '',
     ): string {
         if (!class_exists(\chillerlan\QRCode\QRCode::class)) {
             throw new RuntimeException(
@@ -55,12 +55,12 @@ final class Codec
         }
 
         $payload = [
-            'v'       => 1,
-            'code'    => $code,
-            'id'      => $id,
-            'company' => $company,
-            'email'   => $email,
-            'address' => $address,
+            'v'             => 1,
+            'id'            => $id,
+            'company'       => $company,
+            'email'         => $email,
+            'address'       => $address,
+            'activity_code' => $activityCode,
         ];
 
         $encoded = base64_encode(

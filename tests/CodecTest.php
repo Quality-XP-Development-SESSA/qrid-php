@@ -25,12 +25,12 @@ final class CodecTest extends TestCase
     private function samplePayload(array $overrides = []): array
     {
         return array_merge([
-            'v'       => 1,
-            'code'    => 'ACT-001',
-            'id'      => '3101679980',
-            'company' => 'Acme Corp S.A.',
-            'email'   => 'billing@acme.example',
-            'address' => '123 Main St, San José, Costa Rica',
+            'v'             => 1,
+            'id'            => '3101679980',
+            'company'       => 'Acme Corp S.A.',
+            'email'         => 'billing@acme.example',
+            'address'       => '123 Main St, San José, Costa Rica',
+            'activity_code' => 'ACT-001',
         ], $overrides);
     }
 
@@ -42,7 +42,7 @@ final class CodecTest extends TestCase
         $result  = Codec::decodeQRId($this->encode($payload));
 
         $this->assertSame(1,              $result['v']);
-        $this->assertSame('ACT-001',      $result['code']);
+        $this->assertSame('ACT-001',      $result['activity_code']);
         $this->assertSame('3101679980',   $result['id']);
         $this->assertSame('Acme Corp S.A.',            $result['company']);
         $this->assertSame('billing@acme.example',      $result['email']);
@@ -67,7 +67,7 @@ final class CodecTest extends TestCase
         $encoded = '  ' . $this->encode($this->samplePayload()) . '  ';
         $result  = Codec::decodeQRId($encoded);
 
-        $this->assertSame('ACT-001', $result['code']);
+        $this->assertSame('ACT-001', $result['activity_code']);
     }
 
     public function testDecodeThrowsOnInvalidBase64(): void
@@ -91,11 +91,11 @@ final class CodecTest extends TestCase
         }
 
         $svg = Codec::encodeQRId(
-            code:    'ACT-001',
-            id:      '3101679980',
-            company: 'Acme Corp S.A.',
-            email:   'billing@acme.example',
-            address: '123 Main St',
+            id:            '3101679980',
+            company:       'Acme Corp S.A.',
+            email:         'billing@acme.example',
+            address:       '123 Main St',
+            activityCode:  'ACT-001',
         );
 
         // SVG output contains a base64 data block — extract and decode it.
@@ -103,8 +103,27 @@ final class CodecTest extends TestCase
         $this->assertNotEmpty($matches[1], 'No base64 string found in SVG output.');
 
         $decoded = Codec::decodeQRId($matches[1]);
-        $this->assertSame('ACT-001',     $decoded['code']);
+        $this->assertSame('ACT-001',     $decoded['activity_code']);
         $this->assertSame('3101679980',  $decoded['id']);
         $this->assertSame('Acme Corp S.A.', $decoded['company']);
+    }
+
+    public function testEncodeDefaultsActivityCodeToBlank(): void
+    {
+        if (!class_exists(\chillerlan\QRCode\QRCode::class)) {
+            $this->markTestSkipped('chillerlan/php-qrcode not installed.');
+        }
+
+        $svg = Codec::encodeQRId(
+            id:      '3101679980',
+            company: 'Acme Corp S.A.',
+            email:   'billing@acme.example',
+            address: '123 Main St',
+        );
+
+        preg_match('/"([A-Za-z0-9+\/=]{20,})"/', $svg, $matches);
+        $decoded = Codec::decodeQRId($matches[1]);
+
+        $this->assertSame('', $decoded['activity_code']);
     }
 }
